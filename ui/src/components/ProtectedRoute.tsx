@@ -1,24 +1,27 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface ProtectedRouteProps {
-    children: ReactNode;
+  children: ReactNode;
+}
+
+function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const navigate = useNavigate();
+  const isAuthenticated = localStorage.isAuthenticated;
+  
+  useEffect(() => {
+
+    // Redirect to the home page if not authenticated
+    if (!isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (isAuthenticated) {
+    return <>{children}</>;  // Render the protected content
   }
 
-function ProtectedRoute({ children } : ProtectedRouteProps ) {
-    const navigate = useNavigate();
-    const accessToken = false;
-    const loading = false;
-
-    if (accessToken) {
-        return children;
-    } else if (loading) {
-        return <p>Loading...</p>;
-    } else if (!accessToken && !loading) {
-        navigate('/login');
-    } else {
-        return <p>Something went wrong</p>;
-    }
+  return null;  // Return null if navigating away
 }
 
 export default ProtectedRoute;

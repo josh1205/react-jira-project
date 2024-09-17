@@ -1,13 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { SessionService } from '../services/session';
+import { AxiosError } from 'axios';
 
 export default function Login() {
   const navigate = useNavigate();
+  let loading = false;
   const emailRef = useRef<HTMLInputElement | null>(null);
   const passwordRef = useRef<HTMLInputElement | null>(null);
+  const passwordConfirmationRef = useRef<HTMLInputElement | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
-  const loading = false;
 
   useEffect(() => {
     const isAuthenticated = localStorage.isAuthenticated;
@@ -20,23 +22,40 @@ export default function Login() {
   });
 
   const handleSignin = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (
-        emailRef.current?.value === undefined || 
-        passwordRef.current?.value === undefined ||
-        emailRef.current?.value === '' ||
-        passwordRef.current?.value === ''
-      ) {
-      return setErrors(['Email and password are required']);
-    }
-    const payload = {
-      email: emailRef.current?.value,
-      password: passwordRef.current?.value,
-    };
+    try {
+        event.preventDefault();
+        if (
+            emailRef.current?.value === undefined || 
+            emailRef.current?.value === '' ||
+            passwordRef.current?.value === undefined ||
+            passwordRef.current?.value === '' ||
+            passwordConfirmationRef.current?.value === undefined ||
+            passwordConfirmationRef.current?.value === ''
+          ) {
+          return setErrors(['Email and password are required']);
+        }
+        if (passwordRef.current?.value !== passwordConfirmationRef.current?.value) {
+          return setErrors(['Passwords do not match']);
+        }
+    
+        const payload = {
+          email: emailRef.current?.value,
+          password: passwordRef.current?.value,
+          password_confirmation: passwordConfirmationRef.current?.value,
+        };
+        
 
-    const response = await SessionService.signin(payload);
-    console.log(response);
-    navigate('/dashboard');
+        loading = true;
+        const response = await SessionService.signup(payload);
+        loading = false;
+        console.log(response);
+        navigate('/dashboard');
+    } catch(err) {
+        console.error(err);
+        if (err instanceof AxiosError) {
+            setErrors(err.response?.data.errors);
+        }
+    }
   };
 
   
@@ -59,7 +78,7 @@ export default function Login() {
             className="mx-auto h-10 w-auto"
           />
           <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-            Sign in to your account
+            Sign up for better organization
           </h2>
         </div>
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
@@ -85,11 +104,6 @@ export default function Login() {
                 <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
                   Password
                 </label>
-                <div className="text-sm">
-                  <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-500">
-                    Forgot password?
-                  </a>
-                </div>
               </div>
               <div className="mt-2">
                 <input
@@ -97,6 +111,24 @@ export default function Login() {
                   name="password"
                   type="password"
                   ref={passwordRef}
+                  required
+                  autoComplete="current-password"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
+                  Password Confirmation
+                </label>
+              </div>
+              <div className="mt-2">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  ref={passwordConfirmationRef}
                   required
                   autoComplete="current-password"
                   className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -117,9 +149,9 @@ export default function Login() {
             </div>
           </form>
           <p className="mt-10 text-center text-sm text-gray-500">
-            Not a member?{' '}
-            <Link to="/signup" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
-              Start a 14 day free trial
+            Already have an account?{' '}
+            <Link to="/" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
+              Sign in
             </Link>
           </p>
         </div>
