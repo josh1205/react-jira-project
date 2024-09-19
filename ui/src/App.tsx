@@ -2,7 +2,7 @@
 import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import Dashboard from './pages/Dashboard';
+import ClientLayout from './layouts/ClientLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
@@ -14,7 +14,9 @@ const App = () => {
                <Route path="/signup" element={<Signup />} />
                <Route path="/dashboard" element={
                   <ProtectedRoute>
-                     <Dashboard />
+                     <ClientLayout>
+                        <div>Content Goes here</div>
+                     </ClientLayout>
                   </ProtectedRoute>
                } />
             </Routes>
